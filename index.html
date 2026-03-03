@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DashRepetition - Full Screen</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --card-bg: #f8f9fa;
+            --accent: #1a73e8;
+            --text: #202124;
+            --text-light: #5f6368;
+            --danger: #d93025;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            position: relative;
+        }
+
+        /* Toast Notification */
+        #toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: #323232; color: white; padding: 10px 20px;
+            border-radius: 20px; font-size: 13px; z-index: 2000;
+            opacity: 0; transition: 0.3s; pointer-events: none;
+        }
+
+        /* Views */
+        .view {
+            display: none; width: 100%; height: 100%;
+            padding: 20px; flex-direction: column;
+        }
+        .view.active { display: flex; }
+
+        /* Header */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0; margin-bottom: 10px;
+        }
+        .logo { font-size: 22px; font-weight: 800; color: var(--accent); letter-spacing: -1px; }
+
+        /* Deck List */
+        .scroll-area { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+        .item-card {
+            background: var(--card-bg); padding: 20px; border-radius: 15px;
+            margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid #eee;
+        }
+
+        /* Full Screen Play Mode */
+        .play-screen {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+        }
+        .flash-card-full {
+            width: 100%; flex: 1; background: var(--card-bg);
+            border-radius: 25px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding: 30px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+            margin: 20px 0;
+        }
+        .q-big { font-size: 28px; font-weight: 700; line-height: 1.3; }
+        .a-big { 
+            margin-top: 30px; font-size: 22px; color: var(--accent); 
+            border-top: 2px dashed #ddd; width: 100%; padding-top: 30px;
+        }
+
+        /* Inputs & Lists */
+        input {
+            width: 100%; padding: 15px; border-radius: 12px;
+            border: 1px solid #ddd; margin-bottom: 10px; font-size: 16px;
+        }
+        .card-list-item {
+            background: #fff; border-bottom: 1px solid #eee;
+            padding: 15px 5px; display: flex; justify-content: space-between;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 16px; border-radius: 15px; border: none;
+            font-size: 16px; font-weight: 600; cursor: pointer; width: 100%;
+        }
+        .btn-main { background: var(--accent); color: white; }
+        .btn-dark { background: #202124; color: white; }
+        .btn-ghost { background: none; color: var(--text-light); }
+
+        .fab {
+            position: fixed; bottom: 30px; right: 25px;
+            background: var(--accent); color: white; width: 60px; height: 60px;
+            border-radius: 30px; display: flex; align-items: center; justify-content: center;
+            font-size: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border: none;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div id="toast">Notifikasi</div>
+
+<div class="app-container">
+    
+    <div id="view-home" class="view active">
+        <header>
+            <div class="logo">DashRepetition</div>
+            <button onclick="exportData()" class="btn-ghost">Backup</button>
+        </header>
+        <div class="scroll-area" id="home-list"></div>
+        <button class="fab" onclick="addDeck()">+</button>
+    </div>
+
+    <div id="view-detail" class="view">
+        <header>
+            <button class="btn-ghost" onclick="showView('view-home')">← Tutup</button>
+            <button class="btn-ghost" style="color:red" onclick="deleteDeck()">Hapus Deck</button>
+        </header>
+        
+        <div style="margin-bottom:20px">
+            <input type="text" id="in-q" placeholder="Pertanyaan baru...">
+            <input type="text" id="in-a" placeholder="Jawaban baru...">
+            <button class="btn btn-main" onclick="saveCard()">Tambah ke Deck</button>
+        </div>
+
+        <button class="btn btn-dark" style="margin-bottom:20px" onclick="startPlay()">MULAI BELAJAR (ACAK)</button>
+        
+        <div style="font-weight:bold; margin-bottom:10px">Daftar Kartu di Deck:</div>
+        <div class="scroll-area" id="cards-in-deck"></div>
+    </div>
+
+    <div id="view-play" class="view">
+        <div class="play-screen">
+            <div id="play-info" style="font-size:12px; color:var(--text-light)">Sisa: 0</div>
+            
+            <div class="flash-card-full">
+                <div id="play-q" class="q-big">Pertanyaan</div>
+                <div id="play-a" class="a-big hidden">Jawaban</div>
+            </div>
+
+            <div id="play-ctrl" style="width:100%">
+                <button id="btn-reveal" class="btn btn-main" onclick="reveal()">Buka Jawaban</button>
+                <div id="play-actions" class="hidden" style="display:flex; gap:10px">
+                    <button class="btn btn-ghost" style="border:1px solid #ddd" onclick="handleResult(false)">Ulangi</button>
+                    <button class="btn btn-main" onclick="handleResult(true)">Sudah Paham</button>
+                </div>
+                <button class="btn btn-ghost" onclick="showView('view-home')" style="margin-top:10px">Berhenti</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let db = JSON.parse(localStorage.getItem('dash_rep_fs')) || { decks: [], cards: [] };
+    let activeDeckId = null;
+    let playQueue = [];
+
+    function notify(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg; t.style.opacity = '1';
+        setTimeout(() => t.style.opacity = '0', 2000);
+    }
+
+    function save() {
+        localStorage.setItem('dash_rep_fs', JSON.stringify(db));
+        renderHome();
+        if(activeDeckId) renderDeckDetail();
+    }
+
+    function renderHome() {
+        const list = document.getElementById('home-list');
+        list.innerHTML = '';
+        db.decks.forEach(d => {
+            const count = db.cards.filter(c => c.deckId === d.id).length;
+            const div = document.createElement('div');
+            div.className = 'item-card';
+            div.innerHTML = `<div><b>${d.name}</b><br><small>${count} Kartu</small></div><span>→</span>`;
+            div.onclick = () => { activeDeckId = d.id; showView('view-detail'); renderDeckDetail(); };
+            list.appendChild(div);
+        });
+    }
+
+    function renderDeckDetail() {
+        const list = document.getElementById('cards-in-deck');
+        list.innerHTML = '';
+        const cards = db.cards.filter(c => c.deckId === activeDeckId);
+        cards.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'card-list-item';
+            div.innerHTML = `<div style="flex:1"><b>Q:</b> ${c.q}<br><b>A:</b> ${c.a}</div>
+                             <button onclick="deleteCard(${c.id})" style="background:none; border:none; color:red; font-weight:bold">Hapus</button>`;
+            list.appendChild(div);
+        });
+    }
+
+    function addDeck() {
+        const n = prompt("Nama Deck Baru:");
+        if(n) { const id = Date.now().toString(); db.decks.push({id, name: n}); save(); }
+    }
+
+    function saveCard() {
+        const q = document.getElementById('in-q').value;
+        const a = document.getElementById('in-a').value;
+        if(!q || !a) return notify("Isi lengkap!");
+        db.cards.push({id: Date.now(), deckId: activeDeckId, q, a});
+        document.getElementById('in-q').value = '';
+        document.getElementById('in-a').value = '';
+        save();
+        notify("Kartu disimpan!");
+    }
+
+    function deleteCard(id) {
+        db.cards = db.cards.filter(c => c.id !== id);
+        save();
+    }
+
+    function deleteDeck() {
+        if(confirm("Hapus seluruh deck ini?")) {
+            db.decks = db.decks.filter(d => d.id !== activeDeckId);
+            db.cards = db.cards.filter(c => c.deckId !== activeDeckId);
+            activeDeckId = null;
+            save();
+            showView('view-home');
+        }
+    }
+
+    // --- PLAY LOGIC ---
+    function startPlay() {
+        const cards = db.cards.filter(c => c.deckId === activeDeckId);
+        if(cards.length === 0) return notify("Deck kosong!");
+        playQueue = [...cards].sort(() => Math.random() - 0.5);
+        showView('view-play');
+        nextPlayCard();
+    }
+
+    function nextPlayCard() {
+        if(playQueue.length === 0) { notify("Selesai!"); return showView('view-home'); }
+        const current = playQueue[0];
+        document.getElementById('play-info').innerText = `Tersisa: ${playQueue.length} kartu`;
+        document.getElementById('play-q').innerText = current.q;
+        document.getElementById('play-a').innerText = current.a;
+        document.getElementById('play-a').classList.add('hidden');
+        document.getElementById('btn-reveal').classList.remove('hidden');
+        document.getElementById('play-actions').classList.add('hidden');
+    }
+
+    function reveal() {
+        document.getElementById('play-a').classList.remove('hidden');
+        document.getElementById('btn-reveal').classList.add('hidden');
+        document.getElementById('play-actions').classList.remove('hidden');
+    }
+
+    function handleResult(isKnown) {
+        const current = playQueue.shift();
+        if(!isKnown) {
+            playQueue.push(current);
+            playQueue.sort(() => Math.random() - 0.5);
+            notify("Akan muncul lagi nanti...");
+        }
+        nextPlayCard();
+    }
+
+    function showView(id) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        window.scrollTo(0,0);
+    }
+
+    function exportData() {
+        const blob = new Blob([JSON.stringify(db)], {type:'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'DashRepetition_Data.json';
+        a.click();
+    }
+
+    renderHome();
+</script>
+</body>
+</html>
