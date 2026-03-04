@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DashRepetition - Full Screen</title>
+    <title>DashRepetition - Final Revision</title>
     <style>
         :root {
-            --bg: #ffffff;
-            --card-bg: #f8f9fa;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
             --accent: #1a73e8;
+            --accent-light: #e8f0fe;
             --text: #202124;
             --text-light: #5f6368;
             --danger: #d93025;
+            --radius: 20px;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -34,77 +36,73 @@
         /* Toast Notification */
         #toast {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background: #323232; color: white; padding: 10px 20px;
-            border-radius: 20px; font-size: 13px; z-index: 2000;
+            background: rgba(32, 33, 36, 0.95); color: white; padding: 12px 24px;
+            border-radius: 25px; font-size: 14px; z-index: 9999;
             opacity: 0; transition: 0.3s; pointer-events: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            backdrop-filter: blur(5px);
         }
 
-        /* Views */
-        .view {
-            display: none; width: 100%; height: 100%;
-            padding: 20px; flex-direction: column;
-        }
-        .view.active { display: flex; }
+        .view { display: none; width: 100%; height: 100%; padding: 20px; flex-direction: column; }
+        .view.active { display: flex; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Header */
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 0; margin-bottom: 10px;
-        }
-        .logo { font-size: 22px; font-weight: 800; color: var(--accent); letter-spacing: -1px; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; margin-bottom: 10px; }
+        .logo { font-size: 24px; font-weight: 800; color: var(--accent); letter-spacing: -1px; }
 
-        /* Deck List */
-        .scroll-area { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+        /* Stats Box */
+        .stats-box { background: var(--accent-light); border-radius: 16px; padding: 20px; margin-bottom: 20px; text-align: center; }
+        .stats-title { font-size: 12px; color: var(--accent); font-weight: 700; margin-bottom: 4px; text-transform: uppercase; }
+        .stats-value { font-size: 32px; font-weight: 800; color: var(--accent); }
+
+        .scroll-area { flex: 1; overflow-y: auto; padding-bottom: 100px; }
         .item-card {
-            background: var(--card-bg); padding: 20px; border-radius: 15px;
+            background: var(--card-bg); padding: 20px; border-radius: 16px;
             margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid #eee;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
 
-        /* Full Screen Play Mode */
-        .play-screen {
-            flex: 1; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center;
+        /* Form Layout */
+        .input-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 12px; }
+        input, textarea {
+            flex: 1; padding: 15px; border-radius: 12px; border: 1px solid #ddd;
+            font-size: 16px; font-family: inherit; background: #fafafa;
         }
+        textarea { resize: none; height: 60px; }
+        
+        .img-btn {
+            background: #f1f3f4; border: 1px solid #ddd; border-radius: 12px;
+            width: 50px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 20px;
+        }
+        .img-btn.has-img { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+
+        /* Play Mode (Full Screen) */
         .flash-card-full {
-            width: 100%; flex: 1; background: var(--card-bg);
-            border-radius: 25px; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; padding: 30px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
-            margin: 20px 0;
+            width: 100%; flex: 1; background: var(--card-bg); border-radius: 28px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin: 15px 0; overflow-y: auto;
         }
-        .q-big { font-size: 28px; font-weight: 700; line-height: 1.3; }
-        .a-big { 
-            margin-top: 30px; font-size: 22px; color: var(--accent); 
-            border-top: 2px dashed #ddd; width: 100%; padding-top: 30px;
-        }
-
-        /* Inputs & Lists */
-        input {
-            width: 100%; padding: 15px; border-radius: 12px;
-            border: 1px solid #ddd; margin-bottom: 10px; font-size: 16px;
-        }
-        .card-list-item {
-            background: #fff; border-bottom: 1px solid #eee;
-            padding: 15px 5px; display: flex; justify-content: space-between;
-        }
+        .play-img { max-width: 100%; max-height: 250px; border-radius: 15px; object-fit: contain; margin: 10px 0; border: 1px solid #f0f0f0; }
+        .play-text { font-size: 26px; font-weight: 700; margin: 10px 0; width: 100%; }
+        .divider { width: 100%; border-top: 2px dashed #eee; margin: 25px 0; }
+        .n-box { font-size: 16px; color: var(--text-light); font-style: italic; background: #f8f9fa; padding: 15px; border-radius: 12px; width: 100%; }
 
         /* Buttons */
-        .btn {
-            padding: 16px; border-radius: 15px; border: none;
-            font-size: 16px; font-weight: 600; cursor: pointer; width: 100%;
-        }
+        .btn { padding: 18px; border-radius: 16px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; width: 100%; transition: 0.2s; }
         .btn-main { background: var(--accent); color: white; }
-        .btn-dark { background: #202124; color: white; }
+        .btn-dark { background: #202124; color: white; margin-bottom: 15px; }
         .btn-ghost { background: none; color: var(--text-light); }
+        .btn-danger { background: #fce8e6; color: var(--danger); }
 
         .fab {
-            position: fixed; bottom: 30px; right: 25px;
-            background: var(--accent); color: white; width: 60px; height: 60px;
-            border-radius: 30px; display: flex; align-items: center; justify-content: center;
-            font-size: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border: none;
+            position: fixed; bottom: 30px; right: 25px; background: var(--accent); color: white; 
+            width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; 
+            justify-content: center; font-size: 32px; box-shadow: 0 8px 25px rgba(26,115,232,0.4); border: none;
         }
 
+        .mini-img { max-width: 50px; border-radius: 5px; margin-top: 5px; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -117,46 +115,63 @@
     <div id="view-home" class="view active">
         <header>
             <div class="logo">DashRepetition</div>
-            <button onclick="exportData()" class="btn-ghost">Backup</button>
+            <button onclick="exportData()" class="btn-ghost" style="padding:0">Backup Data</button>
         </header>
+        <div class="stats-box">
+            <div class="stats-title">Waktu Belajar Hari Ini</div>
+            <div class="stats-value" id="today-time">0 Menit</div>
+        </div>
         <div class="scroll-area" id="home-list"></div>
         <button class="fab" onclick="addDeck()">+</button>
     </div>
 
     <div id="view-detail" class="view">
         <header>
-            <button class="btn-ghost" onclick="showView('view-home')">← Tutup</button>
-            <button class="btn-ghost" style="color:red" onclick="deleteDeck()">Hapus Deck</button>
+            <button class="btn-ghost" onclick="showHome()">← Tutup</button>
+            <button class="btn-ghost" style="color:var(--danger)" onclick="deleteDeck()">Hapus Deck</button>
         </header>
         
-        <div style="margin-bottom:20px">
-            <input type="text" id="in-q" placeholder="Pertanyaan baru...">
-            <input type="text" id="in-a" placeholder="Jawaban baru...">
-            <button class="btn btn-main" onclick="saveCard()">Tambah ke Deck</button>
+        <div class="input-card">
+            <div class="input-group">
+                <input type="text" id="in-q" placeholder="Pertanyaan (Teks)...">
+                <button class="img-btn" id="btn-img-q" onclick="document.getElementById('file-q').click()">📷</button>
+                <input type="file" id="file-q" accept="image/*" class="hidden" onchange="markImg('btn-img-q', this)">
+            </div>
+            <div class="input-group">
+                <input type="text" id="in-a" placeholder="Jawaban (Teks)...">
+                <button class="img-btn" id="btn-img-a" onclick="document.getElementById('file-a').click()">📷</button>
+                <input type="file" id="file-a" accept="image/*" class="hidden" onchange="markImg('btn-img-a', this)">
+            </div>
+            <div class="input-group">
+                <textarea id="in-n" placeholder="Keterangan Tambahan..."></textarea>
+                <button class="img-btn" id="btn-img-n" onclick="document.getElementById('file-n').click()">📷</button>
+                <input type="file" id="file-n" accept="image/*" class="hidden" onchange="markImg('btn-img-n', this)">
+            </div>
+            <button class="btn btn-main" id="btn-save-card" onclick="saveCard()">Simpan ke Deck</button>
         </div>
 
-        <button class="btn btn-dark" style="margin-bottom:20px" onclick="startPlay()">MULAI BELAJAR (ACAK)</button>
-        
-        <div style="font-weight:bold; margin-bottom:10px">Daftar Kartu di Deck:</div>
+        <button class="btn btn-dark" onclick="startPlay()">▶ MULAI SESI ACAK</button>
         <div class="scroll-area" id="cards-in-deck"></div>
     </div>
 
     <div id="view-play" class="view">
-        <div class="play-screen">
-            <div id="play-info" style="font-size:12px; color:var(--text-light)">Sisa: 0</div>
+        <div style="display:flex; flex-direction:column; height:100%; align-items:center;">
+            <div id="play-info" style="background:#eee; padding:5px 15px; border-radius:20px; font-size:12px; font-weight:bold;">Sisa: 0</div>
             
             <div class="flash-card-full">
-                <div id="play-q" class="q-big">Pertanyaan</div>
-                <div id="play-a" class="a-big hidden">Jawaban</div>
+                <div id="wrap-q" style="width:100%"></div>
+                <div id="play-divider" class="divider hidden"></div>
+                <div id="wrap-a" class="hidden" style="width:100%; color:var(--accent);"></div>
+                <div id="wrap-n" class="hidden n-box" style="margin-top:15px;"></div>
             </div>
 
             <div id="play-ctrl" style="width:100%">
-                <button id="btn-reveal" class="btn btn-main" onclick="reveal()">Buka Jawaban</button>
+                <button id="btn-reveal" class="btn btn-main" onclick="reveal()">Lihat Jawaban</button>
                 <div id="play-actions" class="hidden" style="display:flex; gap:10px">
-                    <button class="btn btn-ghost" style="border:1px solid #ddd" onclick="handleResult(false)">Ulangi</button>
-                    <button class="btn btn-main" onclick="handleResult(true)">Sudah Paham</button>
+                    <button class="btn btn-danger" style="flex:1" onclick="handleResult(false)">Ulangi</button>
+                    <button class="btn btn-main" style="flex:1" onclick="handleResult(true)">Paham</button>
                 </div>
-                <button class="btn btn-ghost" onclick="showView('view-home')" style="margin-top:10px">Berhenti</button>
+                <button class="btn btn-ghost" onclick="exitPlay()" style="margin-top:10px">Keluar & Simpan Waktu</button>
             </div>
         </div>
     </div>
@@ -164,29 +179,126 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('dash_rep_fs')) || { decks: [], cards: [] };
+    let db = JSON.parse(localStorage.getItem('dash_rep_v6')) || { decks: [], cards: [], stats: {} };
     let activeDeckId = null;
     let playQueue = [];
+    let sessionStart = null;
 
-    function notify(msg) {
-        const t = document.getElementById('toast');
-        t.innerText = msg; t.style.opacity = '1';
-        setTimeout(() => t.style.opacity = '0', 2000);
+    function getToday() { return new Date().toISOString().split('T')[0]; }
+    function notify(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 2000); }
+    function save() { localStorage.setItem('dash_rep_v6', JSON.stringify(db)); }
+
+    function markImg(btnId, input) {
+        const btn = document.getElementById(btnId);
+        btn.innerHTML = (input.files && input.files[0]) ? '✅' : '📷';
+        btn.classList.toggle('has-img', input.files && input.files[0]);
     }
 
-    function save() {
-        localStorage.setItem('dash_rep_fs', JSON.stringify(db));
-        renderHome();
-        if(activeDeckId) renderDeckDetail();
+    // Perbaikan: Proses gambar lebih stabil & tidak bikin macet
+    async function processImage(fileId) {
+        return new Promise((resolve) => {
+            const file = document.getElementById(fileId).files[0];
+            if (!file) return resolve(null);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let w = img.width, h = img.height;
+                    if(w > 600) { h = (h * 600) / w; w = 600; }
+                    canvas.width = w; canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', 0.6));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function saveCard() {
+        const btn = document.getElementById('btn-save-card');
+        if(btn.innerText === "Menyimpan...") return;
+        
+        btn.innerText = "Menyimpan..."; btn.style.opacity = "0.6";
+
+        const qText = document.getElementById('in-q').value;
+        const aText = document.getElementById('in-a').value;
+        const nText = document.getElementById('in-n').value;
+
+        const [qImg, aImg, nImg] = await Promise.all([
+            processImage('file-q'), processImage('file-a'), processImage('file-n')
+        ]);
+
+        if((!qText && !qImg) || (!aText && !aImg)) {
+            notify("Isi Q & A!");
+        } else {
+            db.cards.push({ id: Date.now(), deckId: activeDeckId, qText, qImg, aText, aImg, nText, nImg });
+            save(); 
+            // Reset Form
+            ['in-q','in-a','in-n'].forEach(id => document.getElementById(id).value = '');
+            ['file-q','file-a','file-n'].forEach(id => document.getElementById(id).value = '');
+            ['btn-img-q','btn-img-a','btn-img-n'].forEach(id => markImg(id, {files:[]}));
+            renderDeckDetail();
+            notify("Kartu Disimpan!");
+        }
+        btn.innerText = "Simpan ke Deck"; btn.style.opacity = "1";
+    }
+
+    function startPlay() {
+        const cards = db.cards.filter(c => c.deckId === activeDeckId);
+        if(cards.length === 0) return notify("Deck kosong!");
+        playQueue = [...cards].sort(() => Math.random() - 0.5);
+        sessionStart = Date.now();
+        showView('view-play');
+        nextCard();
+    }
+
+    function nextCard() {
+        if(playQueue.length === 0) return exitPlay();
+        const c = playQueue[0];
+        document.getElementById('play-info').innerText = `Tersisa: ${playQueue.length}`;
+        document.getElementById('wrap-q').innerHTML = (c.qImg ? `<img src="${c.qImg}" class="play-img">` : '') + `<div class="play-text">${c.qText}</div>`;
+        document.getElementById('wrap-a').innerHTML = (c.aImg ? `<img src="${c.aImg}" class="play-img">` : '') + `<div class="play-text">${c.aText}</div>`;
+        document.getElementById('wrap-n').innerHTML = (c.nImg ? `<img src="${c.nImg}" class="play-img">` : '') + (c.nText ? `<div>${c.nText}</div>` : '');
+        
+        ['play-divider', 'wrap-a', 'wrap-n', 'play-actions'].forEach(id => document.getElementById(id).classList.add('hidden'));
+        document.getElementById('btn-reveal').classList.remove('hidden');
+    }
+
+    function reveal() {
+        ['play-divider', 'wrap-a', 'play-actions'].forEach(id => document.getElementById(id).classList.remove('hidden'));
+        if(document.getElementById('wrap-n').innerText.trim() !== "") document.getElementById('wrap-n').classList.remove('hidden');
+        document.getElementById('btn-reveal').classList.add('hidden');
+    }
+
+    function handleResult(isOk) {
+        const c = playQueue.shift();
+        if(!isOk) { playQueue.push(c); playQueue.sort(() => Math.random() - 0.5); notify("Diacak kembali..."); }
+        nextCard();
+    }
+
+    function exitPlay() {
+        if(sessionStart) {
+            const sec = Math.round((Date.now() - sessionStart) / 1000);
+            db.stats[getToday()] = (db.stats[getToday()] || 0) + sec;
+            save(); sessionStart = null;
+        }
+        showHome();
+    }
+
+    function updateStats() {
+        const sec = db.stats[getToday()] || 0;
+        document.getElementById('today-time').innerText = `${Math.floor(sec/60)} Menit`;
     }
 
     function renderHome() {
-        const list = document.getElementById('home-list');
-        list.innerHTML = '';
+        updateStats();
+        const list = document.getElementById('home-list'); list.innerHTML = '';
         db.decks.forEach(d => {
             const count = db.cards.filter(c => c.deckId === d.id).length;
-            const div = document.createElement('div');
-            div.className = 'item-card';
+            const div = document.createElement('div'); div.className = 'item-card';
             div.innerHTML = `<div><b>${d.name}</b><br><small>${count} Kartu</small></div><span>→</span>`;
             div.onclick = () => { activeDeckId = d.id; showView('view-detail'); renderDeckDetail(); };
             list.appendChild(div);
@@ -194,99 +306,25 @@
     }
 
     function renderDeckDetail() {
-        const list = document.getElementById('cards-in-deck');
-        list.innerHTML = '';
-        const cards = db.cards.filter(c => c.deckId === activeDeckId);
-        cards.forEach(c => {
-            const div = document.createElement('div');
-            div.className = 'card-list-item';
-            div.innerHTML = `<div style="flex:1"><b>Q:</b> ${c.q}<br><b>A:</b> ${c.a}</div>
-                             <button onclick="deleteCard(${c.id})" style="background:none; border:none; color:red; font-weight:bold">Hapus</button>`;
+        const list = document.getElementById('cards-in-deck'); list.innerHTML = '';
+        db.cards.filter(c => c.deckId === activeDeckId).forEach(c => {
+            const div = document.createElement('div'); div.className = 'item-card';
+            div.style.fontSize = "14px";
+            div.innerHTML = `<div style="flex:1"><b>Q:</b> ${c.qText} ${c.qImg ? '(Gbr)' : ''}<br><b>A:</b> ${c.aText}</div><button onclick="deleteCard(${c.id})" style="border:none; color:red; background:none;">Hapus</button>`;
             list.appendChild(div);
         });
     }
 
-    function addDeck() {
-        const n = prompt("Nama Deck Baru:");
-        if(n) { const id = Date.now().toString(); db.decks.push({id, name: n}); save(); }
-    }
-
-    function saveCard() {
-        const q = document.getElementById('in-q').value;
-        const a = document.getElementById('in-a').value;
-        if(!q || !a) return notify("Isi lengkap!");
-        db.cards.push({id: Date.now(), deckId: activeDeckId, q, a});
-        document.getElementById('in-q').value = '';
-        document.getElementById('in-a').value = '';
-        save();
-        notify("Kartu disimpan!");
-    }
-
-    function deleteCard(id) {
-        db.cards = db.cards.filter(c => c.id !== id);
-        save();
-    }
-
-    function deleteDeck() {
-        if(confirm("Hapus seluruh deck ini?")) {
-            db.decks = db.decks.filter(d => d.id !== activeDeckId);
-            db.cards = db.cards.filter(c => c.deckId !== activeDeckId);
-            activeDeckId = null;
-            save();
-            showView('view-home');
-        }
-    }
-
-    // --- PLAY LOGIC ---
-    function startPlay() {
-        const cards = db.cards.filter(c => c.deckId === activeDeckId);
-        if(cards.length === 0) return notify("Deck kosong!");
-        playQueue = [...cards].sort(() => Math.random() - 0.5);
-        showView('view-play');
-        nextPlayCard();
-    }
-
-    function nextPlayCard() {
-        if(playQueue.length === 0) { notify("Selesai!"); return showView('view-home'); }
-        const current = playQueue[0];
-        document.getElementById('play-info').innerText = `Tersisa: ${playQueue.length} kartu`;
-        document.getElementById('play-q').innerText = current.q;
-        document.getElementById('play-a').innerText = current.a;
-        document.getElementById('play-a').classList.add('hidden');
-        document.getElementById('btn-reveal').classList.remove('hidden');
-        document.getElementById('play-actions').classList.add('hidden');
-    }
-
-    function reveal() {
-        document.getElementById('play-a').classList.remove('hidden');
-        document.getElementById('btn-reveal').classList.add('hidden');
-        document.getElementById('play-actions').classList.remove('hidden');
-    }
-
-    function handleResult(isKnown) {
-        const current = playQueue.shift();
-        if(!isKnown) {
-            playQueue.push(current);
-            playQueue.sort(() => Math.random() - 0.5);
-            notify("Akan muncul lagi nanti...");
-        }
-        nextPlayCard();
-    }
-
-    function showView(id) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        window.scrollTo(0,0);
-    }
-
+    function addDeck() { const n = prompt("Nama Deck:"); if(n) { db.decks.push({id: Date.now().toString(), name: n}); save(); renderHome(); } }
+    function deleteCard(id) { db.cards = db.cards.filter(c => c.id !== id); save(); renderDeckDetail(); }
+    function deleteDeck() { if(confirm("Hapus deck?")) { db.decks = db.decks.filter(d => d.id !== activeDeckId); db.cards = db.cards.filter(c => c.deckId !== activeDeckId); save(); showHome(); } }
+    function showView(id) { document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+    function showHome() { showView('view-home'); renderHome(); }
     function exportData() {
         const blob = new Blob([JSON.stringify(db)], {type:'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'DashRepetition_Data.json';
-        a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `Backup_${getToday()}.json`; a.click();
     }
-
     renderHome();
 </script>
 </body>
